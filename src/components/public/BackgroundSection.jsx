@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import useFetch from "../../hooks/useFetch";
+import { resolveImageUrl } from "../../services/api";
 
 const CATEGORY_LABEL = {
   education: "Pendidikan",
@@ -13,16 +14,6 @@ const FILTERS = [
   { value: "certification", label: "Sertifikasi" },
   { value: "organization", label: "Organisasi" },
 ];
-
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const base = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(
-    /\/api\/?$/,
-    ""
-  );
-  return `${base}${url}`;
-}
 
 export default function BackgroundSection() {
   const { data: items, loading, error } = useFetch("/backgrounds/");

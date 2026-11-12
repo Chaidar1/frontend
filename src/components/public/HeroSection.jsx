@@ -2,16 +2,7 @@ import useFetch from "../../hooks/useFetch";
 import useSocials from "../../hooks/useSocials";
 import useResume from "../../hooks/useResume";
 import useHeroText from "../../hooks/useHeroText";
-
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const base = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(
-    /\/api\/?$/,
-    ""
-  );
-  return `${base}${url}`;
-}
+import { resolveImageUrl } from "../../services/api";
 
 export default function HeroSection() {
   const { data: heroPhoto } = useFetch("/hero/");

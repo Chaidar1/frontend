@@ -1,15 +1,5 @@
 import { useRef, useState } from "react";
-import api from "../../services/api";
-
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const base = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(
-    /\/api\/?$/,
-    ""
-  );
-  return `${base}${url}`;
-}
+import api, { resolveImageUrl } from "../../services/api";
 
 export default function HeroPhotoModal({ current, onClose, onChanged }) {
   const [uploading, setUploading] = useState(false);

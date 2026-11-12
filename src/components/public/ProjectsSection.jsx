@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
+import { resolveImageUrl } from "../../services/api";
 
 const CATEGORIES = [
   { value: "all", label: "Semua" },
@@ -13,16 +14,6 @@ const CATEGORY_LABEL = {
   frontend: "FRONTEND",
   backend: "BACKEND",
 };
-
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const base = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(
-    /\/api\/?$/,
-    ""
-  );
-  return `${base}${url}`;
-}
 
 export default function ProjectsSection() {
   const { data: projects, loading, error } = useFetch("/projects/");

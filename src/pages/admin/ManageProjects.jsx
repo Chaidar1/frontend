@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../../services/api";
+import api, { resolveImageUrl } from "../../services/api";
 import AdminLayout from "../../components/admin/AdminLayout";
 
 const EMPTY = {
@@ -28,16 +28,6 @@ function slugify(text) {
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
-}
-
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const base = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(
-    /\/api\/?$/,
-    ""
-  );
-  return `${base}${url}`;
 }
 
 export default function ManageProjects() {

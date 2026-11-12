@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../../services/api";
+import api, { resolveImageUrl } from "../../services/api";
 import AdminLayout from "../../components/admin/AdminLayout";
 
 const EMPTY = {
@@ -23,16 +23,6 @@ const LABELS = {
   certification: "SERTIFIKASI",
   organization: "ORGANISASI",
 };
-
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const base = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace(
-    /\/api\/?$/,
-    ""
-  );
-  return `${base}${url}`;
-}
 
 export default function ManageBackground() {
   const [items, setItems] = useState([]);

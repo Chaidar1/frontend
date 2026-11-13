@@ -12,11 +12,13 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 /* ===== Public site ===== */
 .site-shell {
   min-height: 100vh;
+  overflow-x: hidden;
   color: var(--cream);
   font-family: "Inter", system-ui, sans-serif;
   background-color: var(--ink);
@@ -1378,6 +1380,7 @@ html {
   .brand { font-size: 11px; }
   .status-chip { font-size: 9px; }
   .button-row .button { width: 100%; }
+  .contact-form .button { width: 100%; }
   .stats { grid-template-columns: 1fr 1fr; }
   .stat { padding: 20px 14px; }
   .stat span { font-size: 9px; }

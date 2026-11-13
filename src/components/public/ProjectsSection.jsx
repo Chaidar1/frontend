@@ -18,10 +18,27 @@ const CATEGORY_LABEL = {
 export default function ProjectsSection() {
   const { data: projects, loading, error } = useFetch("/projects/");
   const [filter, setFilter] = useState("all");
+  const [showAll, setShowAll] = useState(false);
 
   const visible = (projects || []).filter(
     (p) => p.is_published && (filter === "all" || p.category === filter)
   );
+
+  const INITIAL_COUNT = 3;
+  const displayed = showAll ? visible : visible.slice(0, INITIAL_COUNT);
+  const hasMore = visible.length > INITIAL_COUNT;
+
+  const handleToggle = () => {
+    if (showAll) {
+      setShowAll(false);
+      const section = document.getElementById("projects");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      setShowAll(true);
+    }
+  };
 
   return (
     <section className="section content-wrap" id="projects">
@@ -36,7 +53,10 @@ export default function ProjectsSection() {
               className={filter === c.value ? "filter active" : "filter"}
               key={c.value}
               type="button"
-              onClick={() => setFilter(c.value)}
+              onClick={() => {
+                setFilter(c.value);
+                setShowAll(false);
+              }}
             >
               {c.label}
             </button>
@@ -51,7 +71,7 @@ export default function ProjectsSection() {
       )}
 
       <div className="project-grid">
-        {visible.map((p, idx) => (
+        {displayed.map((p, idx) => (
           <article className="project-card" key={p.id}>
             <div className="project-visual">
               <div className="window-dots">
@@ -108,6 +128,35 @@ export default function ProjectsSection() {
           </article>
         ))}
       </div>
+
+      {hasMore && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
+          <button
+            type="button"
+            className="button outline"
+            onClick={handleToggle}
+            style={{
+              minHeight: 48,
+              padding: "0 28px",
+              letterSpacing: "0.06em",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            {showAll ? (
+              <>
+                TUTUP SEBAGIAN <span style={{ fontSize: 10 }}>▲</span>
+              </>
+            ) : (
+              <>
+                TAMPILKAN SEMUA ({visible.length} PROJECT){" "}
+                <span style={{ fontSize: 10 }}>▼</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </section>
   );
 }

@@ -14,6 +14,12 @@ export default function ManageSkills() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // State untuk custom confirm modal hapus
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    skill: null,
+  });
+
   const load = async () => {
     setLoading(true);
     setError("");
@@ -45,6 +51,7 @@ export default function ManageSkills() {
   const openComposer = () => {
     setForm(EMPTY);
     setEditingId(null);
+    setError("");
     setShowModal(true);
   };
 
@@ -52,11 +59,12 @@ export default function ManageSkills() {
     setForm({
       name: s.name,
       category: s.category,
-      proficiency: s.proficiency,
-      order: s.order,
+      proficiency: s.proficiency ?? 80,
+      order: s.order ?? 0,
       icon: s.icon || "",
     });
     setEditingId(s.id);
+    setError("");
     setShowModal(true);
   };
 
@@ -78,21 +86,31 @@ export default function ManageSkills() {
         await api.post("/skills/", form);
       }
       setShowModal(false);
-      setNotice(editingId ? "Skill diperbarui." : "Skill ditambahkan.");
+      setNotice(editingId ? "Skill berhasil diperbarui." : "Skill baru berhasil ditambahkan.");
       await load();
     } catch (err) {
       setError(err.response?.data?.detail || "Gagal menyimpan skill");
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Hapus skill ini?")) return;
+  const confirmDelete = (s) => {
+    setConfirmModal({
+      isOpen: true,
+      skill: s,
+    });
+  };
+
+  const executeDelete = async () => {
+    if (!confirmModal.skill) return;
+    const s = confirmModal.skill;
     try {
-      await api.delete(`/skills/${id}`);
-      setNotice("Skill dihapus.");
+      await api.delete(`/skills/${s.id}`);
+      setNotice(`Skill "${s.name}" berhasil dihapus.`);
+      setConfirmModal({ isOpen: false, skill: null });
       await load();
     } catch (err) {
-      setError(err.response?.data?.detail || "Gagal menghapus");
+      setError(err.response?.data?.detail || "Gagal menghapus skill");
+      setConfirmModal({ isOpen: false, skill: null });
     }
   };
 
@@ -124,68 +142,103 @@ export default function ManageSkills() {
         </button>
       )}
 
-      {loading && <p className="muted">Memuat...</p>}
+      {loading && <p className="muted">Memuat skills...</p>}
       {!loading && items.length === 0 && <p className="muted">Belum ada skill.</p>}
 
       <div className="skill-grid">
         {Object.entries(grouped).map(([cat, list], idx) => (
-          <article className="skill-card" key={cat}>
-            <p className="eyebrow">
-              {String(idx + 1).padStart(2, "0")} / {cat.toUpperCase()}
-            </p>
-            <div className="tag-row">
+          <article className="skill-card" key={cat} style={{ padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <p className="eyebrow" style={{ margin: 0 }}>
+                {String(idx + 1).padStart(2, "0")} / {cat.toUpperCase()}
+              </p>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--muted)" }}>
+                {list.length} SKILL
+              </span>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {list.map((s) => (
-                <span className="tag" key={s.id} style={{ position: "relative", paddingRight: 28 }}>
-                  {s.name}
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(s)}
-                    style={{
-                      position: "absolute",
-                      right: 4,
-                      top: 2,
-                      background: "none",
-                      border: 0,
-                      color: "var(--gold)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 9,
-                      cursor: "pointer",
-                    }}
-                    title="Edit"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(s.id)}
-                    style={{
-                      position: "absolute",
-                      right: 4,
-                      bottom: 2,
-                      background: "none",
-                      border: 0,
-                      color: "var(--muted)",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 9,
-                      cursor: "pointer",
-                    }}
-                    title="Hapus"
-                  >
-                    ×
-                  </button>
-                </span>
+                <div
+                  key={s.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 12px",
+                    background: "var(--panel-2)",
+                    border: "1px solid var(--line)",
+                    gap: 10,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                    <strong style={{ fontSize: 13, color: "var(--cream)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {s.name}
+                    </strong>
+                    {s.proficiency !== undefined && s.proficiency !== null && (
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 9,
+                          color: "var(--gold)",
+                          background: "rgba(232, 185, 60, 0.08)",
+                          padding: "1px 5px",
+                          border: "1px solid rgba(232, 185, 60, 0.2)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {s.proficiency}%
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(s)}
+                      className="button outline"
+                      style={{
+                        minHeight: 28,
+                        padding: "0 10px",
+                        fontSize: 10,
+                        letterSpacing: "0.05em",
+                      }}
+                      title={`Edit ${s.name}`}
+                    >
+                      EDIT
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => confirmDelete(s)}
+                      className="button outline"
+                      style={{
+                        minHeight: 28,
+                        padding: "0 10px",
+                        fontSize: 10,
+                        letterSpacing: "0.05em",
+                        borderColor: "rgba(255, 100, 100, 0.4)",
+                        color: "#ff8888",
+                      }}
+                      title={`Hapus ${s.name}`}
+                    >
+                      HAPUS
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           </article>
         ))}
       </div>
 
+      {/* Modal Tambah / Edit Skill */}
       {showModal && (
         <div className="modal-backdrop" onMouseDown={() => setShowModal(false)}>
           <form
             className="project-modal"
             onSubmit={handleSubmit}
             onMouseDown={(e) => e.stopPropagation()}
+            style={{ width: "min(460px, 100%)" }}
           >
             <p className="eyebrow">// {editingId ? "EDIT SKILL" : "SKILL BARU"}</p>
             <h2>{editingId ? `Edit skill #${editingId}` : "Tambahkan skill"}</h2>
@@ -195,12 +248,12 @@ export default function ManageSkills() {
             )}
 
             <label>
-              <span>NAMA</span>
+              <span>NAMA SKILL</span>
               <input
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                placeholder="React"
+                placeholder="misal: React, Python, PostgreSQL"
                 required
                 autoFocus
               />
@@ -228,7 +281,7 @@ export default function ManageSkills() {
                 />
               </label>
               <label>
-                <span>URUTAN</span>
+                <span>URUTAN (ORDER)</span>
                 <input
                   name="order"
                   type="number"
@@ -239,9 +292,9 @@ export default function ManageSkills() {
               </label>
             </div>
 
-            <div className="button-row">
+            <div className="button-row" style={{ marginTop: 8 }}>
               <button className="button primary" type="submit">
-                {editingId ? "SIMPAN" : "TAMBAH"}
+                {editingId ? "SIMPAN PERUBAHAN" : "TAMBAH SKILL"}
               </button>
               <button
                 className="button outline"
@@ -252,6 +305,44 @@ export default function ManageSkills() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Custom Confirm Modal Hapus */}
+      {confirmModal.isOpen && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={() => setConfirmModal({ isOpen: false, skill: null })}
+        >
+          <div
+            className="project-modal"
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{ maxWidth: 400, textAlign: "center", alignItems: "center" }}
+          >
+            <p className="eyebrow" style={{ color: "var(--gold)" }}>// KONFIRMASI</p>
+            <h2 style={{ fontSize: 22, marginTop: 4 }}>Hapus Skill?</h2>
+            <p className="muted" style={{ marginBottom: 16 }}>
+              Skill <strong>"{confirmModal.skill?.name}"</strong> akan dihapus permanen dari portofolio.
+            </p>
+            <div style={{ display: "flex", gap: 10, width: "100%", marginTop: 8 }}>
+              <button
+                type="button"
+                className="button primary"
+                onClick={executeDelete}
+                style={{ flex: 1, background: "var(--gold)", color: "#000", border: 0 }}
+              >
+                YA, HAPUS
+              </button>
+              <button
+                type="button"
+                className="button outline"
+                onClick={() => setConfirmModal({ isOpen: false, skill: null })}
+                style={{ flex: 1 }}
+              >
+                BATAL
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </AdminLayout>
